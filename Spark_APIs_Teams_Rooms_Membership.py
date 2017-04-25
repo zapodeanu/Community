@@ -36,7 +36,6 @@ def create_spark_team(team_name):
     url = SPARK_URL + '/teams'
     header = {'content-type': 'application/json', 'authorization': SPARK_AUTH}
     team_response = requests.post(url, data=json.dumps(payload), headers=header, verify=False)
-    print(team_response)
     team_json = team_response.json()
     team_id = team_json['id']
     return team_id
