@@ -1,4 +1,3 @@
-
 # developed by Gabi Zapodeanu, TSA, GSS, Cisco Systems
 
 
@@ -7,9 +6,9 @@
 import requests
 import json
 import requests.packages.urllib3
-import Spark_APIs_init
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # Disable insecure https warnings
 
 from Spark_APIs_init import SPARK_AUTH, SPARK_URL
@@ -116,7 +115,6 @@ def add_spark_team_membership(team_name, email_invite):
     :return:
     """
 
-    membership = None
     team_id = get_spark_team_id(team_name)
     payload = {'teamId': team_id, 'personEmail': email_invite, 'isModerator': 'true'}
     url = SPARK_URL + '/team/memberships'
