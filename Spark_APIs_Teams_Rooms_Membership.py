@@ -145,6 +145,7 @@ def delete_spark_team(team_name):
 
 
 def main():
+
     # Input Spark Team name
 
     team_name = input('Please enter the team name: ')
