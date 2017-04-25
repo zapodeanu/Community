@@ -7,15 +7,12 @@
 import requests
 import json
 import requests.packages.urllib3
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from requests.auth import HTTPBasicAuth  # for Basic Auth
-
 import Spark_APIs_init
 
-from Spark_APIs_init import SPARK_AUTH, SPARK_URL
-
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # Disable insecure https warnings
 
+from Spark_APIs_init import SPARK_AUTH, SPARK_URL
 
 
 def pprint(json_data):
@@ -30,10 +27,10 @@ def pprint(json_data):
 
 def create_spark_team(team_name):
     """
-    Action:     this function will create a Spark team with the title team_name
-    Call to:    Spark - /teams
-    Input:      the team name, global variable - Spark auth access token
-    Output:     the Spark team id
+    This function will create a Spark team with the title team_name
+    Call to Spark - /teams
+    :param team_name: new Spark team name
+    :return: the Spark team id
     """
 
     payload = {'name': team_name}
@@ -46,13 +43,12 @@ def create_spark_team(team_name):
     return team_id
 
 
-
 def get_spark_team_id(team_name):
     """
-    Action:     this function will find a Spark team with the title team_name
-    Call to:    Spark - /teams
-    Input:      the team name, global variable - Spark auth access token
-    Output:     the Spark team id
+    This function will find a Spark team with the title team_name
+    Call to Spark - /teams
+    :param team_name: Spark team name
+    :return: the Spark team id
     """
 
     team_id = None
@@ -69,11 +65,12 @@ def get_spark_team_id(team_name):
 
 def create_spark_room(room_name, team_name):
     """
-    Action:     this function will create a Spark room with the title room name, part of the team - team name
-    Call to:    Find the Spark team_id by calling our function get_spark_team_id first
-                Spark - /rooms
-    Input:      the room name, team id, global variable - Spark auth access token
-    Output:     the Spark room Id
+    This function will create a Spark room with the title room name, part of the team - team name
+    Calls to: Find the Spark team_id by calling our function get_spark_team_id
+              Call to Spark - /rooms, to create the new Room
+    :param room_name: Spark room name
+    :param team_name: Spark team name
+    :return: the Spark room id
     """
 
     team_id = get_spark_team_id(team_name)
@@ -88,10 +85,10 @@ def create_spark_room(room_name, team_name):
 
 def get_spark_room_id(room_name):
     """
-    Action:     this function will find the Spark room id based on the room name
-    Call to:    Spark - /rooms
-    Input:      the room name, global variable - Spark auth access token
-    Output:     the Spark room Id
+    This function will find the Spark room id based on the room name
+    Call to Spark - /rooms
+    :param room_name: The Spark room name
+    :return: the Spark room Id
     """
 
     payload = {'title': room_name}
@@ -109,11 +106,14 @@ def get_spark_room_id(room_name):
 
 def add_spark_team_membership(team_name, email_invite):
     """
-    Action:     this function will add membership to the Spark team with the team name
-                It will call first the function get_spark_team_id(team_name) to find out the team id
-    Call to:    Spark - /memberships
+    This function will add membership to the Spark team with the team name
+    Calls to: It will call first the function get_spark_team_id(team_name) to find out the team id
+              Spark - /memberships to add membership
     Input:      team name and email address to invite, global variable - Spark auth access token
     Output:     none
+    :param team_name: The Spark team name
+    :param email_invite: Spark user email to add to the team
+    :return:
     """
 
     membership = None
@@ -132,11 +132,11 @@ def add_spark_team_membership(team_name, email_invite):
 
 def delete_spark_team(team_name):
     """
-    Action:     this function will delete the Spark team with the team name
-                It will call first the function to find out the team id.
-    Call to:    Spark - /teams/
-    Input:      room Id, global variable - Spark auth access token
-    Output:     none
+    This function will delete the Spark team with the team name
+    Calls to: it will call first the function to find out the team id.
+              Spark - /teams/ to find delete the team
+    :param team_name: The Spark team name
+    :return:
     """
 
     team_id = get_spark_team_id(team_name)
