@@ -24,15 +24,3 @@ def pprint(json_data):
 
     print(json.dumps(json_data, indent=4, separators=(' , ', ' : ')))
 
-
-
-
-def pprint(json_data):
-    """
-    Pretty print JSON formatted data
-    :param json_data:
-    :return:
-    """
-
-    print(json.dumps(json_data, indent=4, separators=(' , ', ' : ')))
-

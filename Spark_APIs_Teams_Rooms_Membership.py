@@ -146,15 +146,19 @@ def delete_spark_team(team_name):
 
 def main():
     # Input Spark Team name
+
     team_name = input('Please enter the team name: ')
 
     # Input Spark Room name
+
     room_name = input('Please enter the room name: ')
 
     # Input email address to invite to room
+
     email = input('Please enter email address to invite: ')
 
     # check to see if the team exists, if it does not create the Spark team with the team_name
+
     team_id = get_spark_team_id(team_name)
     if team_id is None:
         team_id = create_spark_team(team_name)
@@ -163,6 +167,7 @@ def main():
         print('Team found ', team_name, ' Team ID: ', team_id)
 
     # check to see if the room exists, if not create a new room with the room_name, part of the team with the team_name
+
     room_id = get_spark_room_id(room_name)
     if room_id is None:
         room_id = create_spark_room(room_name, team_name)
