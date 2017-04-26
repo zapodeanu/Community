@@ -8,11 +8,12 @@ import requests
 import json
 import requests.packages.urllib3
 
-from requests_toolbelt import MultipartEncoder
+from requests_toolbelt import MultipartEncoder  # required to encode messages uploaded to Spark
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from Spark_APIs_init import SPARK_AUTH, SPARK_URL
+
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # Disable insecure https warnings
 
-from Spark_APIs_init import SPARK_AUTH, SPARK_URL
 
 # declarations for team/room/membership
 
@@ -214,7 +215,7 @@ def post_spark_room_file(room_name, file_name, file_type, file_path):
     m = MultipartEncoder(fields=payload)
     url = SPARK_URL + '/messages'
     header = {'content-type': m.content_type, 'authorization': SPARK_AUTH}
-    response = requests.post(url, data=m, headers=header, verify=False)
+    requests.post(url, data=m, headers=header, verify=False)
 
     print('File posted :  ', file_path+file_name)
 

@@ -8,10 +8,9 @@ import json
 import requests.packages.urllib3
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from Spark_APIs_init import SPARK_AUTH, SPARK_URL
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # Disable insecure https warnings
-
-from Spark_APIs_init import SPARK_AUTH, SPARK_URL
 
 
 def pprint(json_data):
@@ -144,7 +143,6 @@ def delete_spark_team(team_name):
 
 
 def main():
-
     # Input Spark Team name
 
     spark_team_name = input('Please enter the team name: ')
