@@ -25,7 +25,7 @@ def pprint(json_data):
 
 def create_spark_team(team_name):
     """
-    This function will create a Spark team with the title {team_name}
+    This function will create a Spark team with the name {team_name}
     Call to Spark - /teams
     :param team_name: new Spark team name
     :return: the Spark team id
@@ -42,8 +42,8 @@ def create_spark_team(team_name):
 
 def get_spark_team_id(team_name):
     """
-    This function will find a Spark team with the title {team_name}
-    Call to Spark - /teams
+    This function will find a Spark team with the name {team_name}
+    Call to Spark - /teams to create the new team
     :param team_name: Spark team name
     :return: the Spark team id
     """
@@ -62,9 +62,9 @@ def get_spark_team_id(team_name):
 
 def create_spark_room(room_name, team_name):
     """
-    This function will create a Spark room with the title {room_name}, part of the team - {team_name}
+    This function will create a Spark room with the name {room_name}, part of the team - {team_name}
     Calls to: Find the Spark team_id by calling our function get_spark_team_id
-              Call to Spark - /rooms, to create the new Room
+              Call to Spark - /rooms, to create the new room
     :param room_name: Spark room name
     :param team_name: Spark team name
     :return: the Spark room id
@@ -103,14 +103,12 @@ def get_spark_room_id(room_name):
 
 def add_spark_team_membership(team_name, email_invite):
     """
-    This function will add membership to the Spark team with the {team_name}
+    This function will add membership to the Spark team with the name {team_name}
     Calls to: It will call first the function get_spark_team_id(team_name) to find out the team id
               Spark - /memberships to add membership
-    Input:      team name and email address to invite
-    Output:     none
     :param team_name: The Spark team name
     :param email_invite: Spark user email to add to the team
-    :return:
+    :return: status for adding the user
     """
 
     team_id = get_spark_team_id(team_name)
@@ -143,6 +141,17 @@ def delete_spark_team(team_name):
 
 
 def main():
+    """
+    This code will ask the user for input for:
+    - Spark team name
+    - Spark room name
+    - Spark user email
+    Based on user input it will find if there is an existing Team and Room with the specified names.
+    If not it will create a new team and room.
+    It will invite the Spark user with the specified email to join the team/room.
+    There is an optional step at the end to delete the Spark team.
+    """
+
     # Input Spark Team name
 
     spark_team_name = input('Please enter the team name: ')
@@ -151,7 +160,7 @@ def main():
 
     spark_room_name = input('Please enter the room name: ')
 
-    # Input email address to invite to room
+    # Input Spark user email address to invite to room
 
     email = input('Please enter email address to invite: ')
 

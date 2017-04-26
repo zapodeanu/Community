@@ -34,7 +34,7 @@ def pprint(json_data):
 
 def create_spark_team(team_name):
     """
-    This function will create a Spark team with the title team_name
+    This function will create a Spark team with the name {team_name}
     Call to Spark - /teams
     :param team_name: new Spark team name
     :return: the Spark team id
@@ -51,11 +51,12 @@ def create_spark_team(team_name):
 
 def get_spark_team_id(team_name):
     """
-    This function will find a Spark team with the title team_name
-    Call to Spark - /teams
+    This function will find a Spark team with the name {team_name}
+    Call to Spark - /teams to create the new team
     :param team_name: Spark team name
     :return: the Spark team id
     """
+
 
     team_id = None
     url = SPARK_URL + '/teams'
@@ -71,9 +72,9 @@ def get_spark_team_id(team_name):
 
 def create_spark_room(room_name, team_name):
     """
-    This function will create a Spark room with the title room name, part of the team - team name
+    This function will create a Spark room with the name {room_name}, part of the team - {team_name}
     Calls to: Find the Spark team_id by calling our function get_spark_team_id
-              Call to Spark - /rooms, to create the new Room
+              Call to Spark - /rooms, to create the new room
     :param room_name: Spark room name
     :param team_name: Spark team name
     :return: the Spark room id
@@ -91,7 +92,7 @@ def create_spark_room(room_name, team_name):
 
 def get_spark_room_id(room_name):
     """
-    This function will find the Spark room id based on the room name
+    This function will find the Spark room id based on the {room_name}
     Call to Spark - /rooms
     :param room_name: The Spark room name
     :return: the Spark room Id
@@ -112,14 +113,12 @@ def get_spark_room_id(room_name):
 
 def add_spark_team_membership(team_name, email_invite):
     """
-    This function will add membership to the Spark team with the team name
+    This function will add membership to the Spark team with the name {team_name}
     Calls to: It will call first the function get_spark_team_id(team_name) to find out the team id
               Spark - /memberships to add membership
-    Input:      team name and email address to invite, global variable - Spark auth access token
-    Output:     none
     :param team_name: The Spark team name
     :param email_invite: Spark user email to add to the team
-    :return:
+    :return: status for adding the user
     """
 
     team_id = get_spark_team_id(team_name)
@@ -137,8 +136,8 @@ def add_spark_team_membership(team_name, email_invite):
 
 def delete_spark_team(team_name):
     """
-    This function will delete the Spark team with the team name
-    Calls to: it will call first the function to find out the team id.
+    This function will delete the Spark team with the {team_name}
+    Calls to: it will call first the function get_spark_team_id(team_name) to find out the team id.
               Spark - /teams/ to find delete the team
     :param team_name: The Spark team name
     :return:
@@ -154,7 +153,7 @@ def delete_spark_team(team_name):
 def last_spark_room_message(room_name):
     """
     This function will find the last message from the Spark room with the {room_name}
-    Call to function to find the room_id
+    Call to function get_spark_room_id(room_name) to find the room_id
     Followed by API call to /messages?roomId={room_id}
     :param room_name: the Spark room name
     :return: {last_message} - the text of the last message posted in the room
@@ -175,7 +174,7 @@ def last_spark_room_message(room_name):
 def post_spark_room_message(room_name, message):
     """
     This function will post the {message} to the Spark room with the {room_name}
-    Call to function to find the room_id
+    Call to function get_spark_room_id(room_name) to find the room_id
     Followed by API call /messages
     :param room_name: the Spark room name
     :param message: the text of the message to be posted in the room
@@ -192,7 +191,8 @@ def post_spark_room_message(room_name, message):
 
 def post_spark_room_file(room_name, file_name, file_type, file_path):
     """
-    This function will post the file with the name {file} to the Spark room with the {room_name}
+    This function will post the file with the name {file_name}, type of file {file_type}, 
+    from the local machine folder with the path {file_path}, to the Spark room with the name {room_name}
     Call to function get_spark_room_id(room_name) to find the room_id
     Followed by API call /messages
     :param room_name: Spark room name
@@ -221,6 +221,16 @@ def post_spark_room_file(room_name, file_name, file_type, file_path):
 
 
 def main():
+    """
+    This code will create or find an existing Spark team with the name {spark_team_name}, and create or find
+    an existing Spark room with the name {spark_room_name}. It will invite a new Spark user with the email
+    {email} to join the team.
+    It will ask the user to input a message and post the message in the Spark room.
+    The code will retrieve the last message posted in the room and the Spark user email that posted the message.
+    The last step is to post a file in the Spark room. The file name, type, local machine path are required for this 
+    upload.
+    There is an optional step at the end to delete the Spark team.
+    """
 
     # check to see if the team exists, if it does not create the Spark team with the spark_team_name
 
@@ -231,7 +241,8 @@ def main():
     else:
         print('Team found ', spark_team_name, ' Team ID: ', team_id)
 
-    # check to see if the room exists, if not create a new room with the spark_team_name, part of the team with the spark_team_name
+    # check to see if the room exists, if not create a new room with the spark_room_name,
+    # part of the team with the spark_team_name
 
     room_id = get_spark_room_id(spark_room_name)
     if room_id is None:
@@ -264,9 +275,9 @@ def main():
     print('The last message from the room ', spark_room_name, ' was: ', last_spark_message)
     print('The last message from the room ', spark_room_name, ' was posted by: ', last_user_message)
 
-    file_name = 'SunPeaks.jpg'
-    file_type = 'image/jpg'
-    file_path = '/Users/gzapodea/PythonCode/Community/'
+    file_name = 'SunPeaks.jpg'  # change this for your file
+    file_type = 'image/jpg'  # change the file type for your file
+    file_path = '/Users/gzapodea/PythonCode/Community/'  # change this path to match your local path
 
     post_spark_room_file(spark_room_name, file_name, file_type, file_path)
 
