@@ -192,11 +192,13 @@ def post_spark_room_message(room_name, message):
 def post_spark_room_file(room_name, file_name, file_type, file_path):
     """
     This function will post the file with the name {file} to the Spark room with the {room_name}
-    Call to function to find the room_id
+    Call to function get_spark_room_id(room_name) to find the room_id
     Followed by API call /messages
-    :param room_name: the Spark room name
-    :param file: the file name to be posted in the room
-    :return: none
+    :param room_name: Spark room name
+    :param file_name: File name to be uploaded
+    :param file_type: File type
+    :param file_path: File path local on the computer
+    :return: 
     """
 
     room_id = get_spark_room_id(room_name)
