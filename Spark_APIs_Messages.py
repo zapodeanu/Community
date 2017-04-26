@@ -19,7 +19,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # Disable in
 
 spark_team_name = 'TeamTest'
 spark_room_name = 'RoomTest'
-email = 'gabriel.zapodeanu@gmail.com'
+email = 'gabi@cisco.com'
 
 
 def pprint(json_data):
@@ -56,7 +56,6 @@ def get_spark_team_id(team_name):
     :param team_name: Spark team name
     :return: the Spark team id
     """
-
 
     team_id = None
     url = SPARK_URL + '/teams'
@@ -275,7 +274,7 @@ def main():
     print('The last message from the room ', spark_room_name, ' was: ', last_spark_message)
     print('The last message from the room ', spark_room_name, ' was posted by: ', last_user_message)
 
-    file_name = 'SunPeaks.jpg'  # change this for your file
+    file_name = 'ERNA_diag.jpg'  # change this for your file
     file_type = 'image/jpg'  # change the file type for your file
     file_path = '/Users/gzapodea/PythonCode/Community/'  # change this path to match your local path
 
