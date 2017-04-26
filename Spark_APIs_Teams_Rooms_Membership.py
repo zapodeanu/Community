@@ -147,46 +147,46 @@ def main():
 
     # Input Spark Team name
 
-    team_name = input('Please enter the team name: ')
+    spark_team_name = input('Please enter the team name: ')
 
     # Input Spark Room name
 
-    room_name = input('Please enter the room name: ')
+    spark_room_name = input('Please enter the room name: ')
 
     # Input email address to invite to room
 
     email = input('Please enter email address to invite: ')
 
-    # check to see if the team exists, if it does not create the Spark team with the team_name
+    # check to see if the team exists, if it does not create the Spark team with the spark_team_name
 
-    team_id = get_spark_team_id(team_name)
+    team_id = get_spark_team_id(spark_team_name)
     if team_id is None:
-        team_id = create_spark_team(team_name)
-        print('Created ', team_name, ' Team ID: ', team_id)
+        team_id = create_spark_team(spark_team_name)
+        print('Created ', spark_team_name, ' Team ID: ', team_id)
     else:
-        print('Team found ', team_name, ' Team ID: ', team_id)
+        print('Team found ', spark_team_name, ' Team ID: ', team_id)
 
-    # check to see if the room exists, if not create a new room with the room_name, part of the team with the team_name
+    # check to see if the room exists, if not create a new room with the spark_room_name, part of the team with the spark_team_name
 
-    room_id = get_spark_room_id(room_name)
+    room_id = get_spark_room_id(spark_room_name)
     if room_id is None:
-        room_id = create_spark_room(room_name, team_name)
-        print('Created ', room_name, ' Room ID: ', room_id)
+        room_id = create_spark_room(spark_room_name, spark_team_name)
+        print('Created ', spark_room_name, ' Room ID: ', room_id)
     else:
-        print('Room found ', room_name, ' Room ID: ', room_id)
+        print('Room found ', spark_room_name, ' Room ID: ', room_id)
 
     # invite new members to join the room
 
-    membership_status = add_spark_team_membership(team_name, email)
+    membership_status = add_spark_team_membership(spark_team_name, email)
     if membership_status is None:
         print('Team member invitation failed')
     else:
-        print('Team member ', email, ' invited to team ', team_name)
+        print('Team member ', email, ' invited to team ', spark_team_name)
 
     # delete Spark team - optional step
 
-    if input('Do you delete the Spark Team  - ' + team_name + ' - ? (y/n)  ') == 'y':
-        delete_spark_team(team_name)
+    if input('Do you delete the Spark Team  - ' + spark_team_name + ' - ? (y/n)  ') == 'y':
+        delete_spark_team(spark_team_name)
 
 
 if __name__ == '__main__':

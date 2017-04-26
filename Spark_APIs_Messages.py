@@ -7,8 +7,8 @@
 import requests
 import json
 import requests.packages.urllib3
-import Spark_APIs_init
 
+from requests_toolbelt import MultipartEncoder
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # Disable insecure https warnings
 
@@ -16,8 +16,8 @@ from Spark_APIs_init import SPARK_AUTH, SPARK_URL
 
 # declarations for team/room/membership
 
-team_name = 'TeamTest'
-room_name = 'RoomTest'
+spark_team_name = 'TeamTest'
+spark_room_name = 'RoomTest'
 email = 'gabriel.zapodeanu@gmail.com'
 
 
@@ -150,38 +150,127 @@ def delete_spark_team(team_name):
     print("Deleted Spark Team :  ", team_name)
 
 
-def main():
-
-    # check to see if the team exists, if it does not create the Spark team with the team_name
-
-    team_id = get_spark_team_id(team_name)
-    if team_id is None:
-        team_id = create_spark_team(team_name)
-        print('Created ', team_name, ' Team ID: ', team_id)
-    else:
-        print('Team found ', team_name, ' Team ID: ', team_id)
-
-    # check to see if the room exists, if not create a new room with the room_name, part of the team with the team_name
+def last_spark_room_message(room_name):
+    """
+    This function will find the last message from the Spark room with the {room_name}
+    Call to function to find the room_id
+    Followed by API call to /messages?roomId={room_id}
+    :param room_name: the Spark room name
+    :return: {last_message} - the text of the last message posted in the room
+             {last_person_email} - the author of the last message in the room
+    """
 
     room_id = get_spark_room_id(room_name)
-    if room_id is None:
-        room_id = create_spark_room(room_name, team_name)
-        print('Created ', room_name, ' Room ID: ', room_id)
+    url = SPARK_URL + '/messages?roomId=' + room_id
+    header = {'content-type': 'application/json', 'authorization': SPARK_AUTH}
+    response = requests.get(url, headers=header, verify=False)
+    list_messages_json = response.json()
+    list_messages = list_messages_json['items']
+    last_message = list_messages[0]['text']
+    last_person_email = list_messages[0]['personEmail']
+    return [last_message, last_person_email]
+
+
+def post_spark_room_message(room_name, message):
+    """
+    This function will post the {message} to the Spark room with the {room_name}
+    Call to function to find the room_id
+    Followed by API call /messages
+    :param room_name: the Spark room name
+    :param message: the text of the message to be posted in the room
+    :return: none
+    """
+
+    room_id = get_spark_room_id(room_name)
+    payload = {'roomId': room_id, 'text': message}
+    url = SPARK_URL + '/messages'
+    header = {'content-type': 'application/json', 'authorization': SPARK_AUTH}
+    requests.post(url, data=json.dumps(payload), headers=header, verify=False)
+    print("Message posted :  ", message)
+
+
+def post_spark_room_file(room_name, file_name, file_type, file_path):
+    """
+    This function will post the file with the name {file} to the Spark room with the {room_name}
+    Call to function to find the room_id
+    Followed by API call /messages
+    :param room_name: the Spark room name
+    :param file: the file name to be posted in the room
+    :return: none
+    """
+
+    room_id = get_spark_room_id(room_name)
+
+    # get the file name without the extension
+    file = file_name.split('.')[0]
+
+    payload = {'roomId': room_id,
+               'files': (file, open(file_path+file_name, 'rb'), file_type)
+               }
+    # encode the file info, example: https://developer.ciscospark.com/blog/blog-details-8129.html
+
+    m = MultipartEncoder(fields=payload)
+    url = SPARK_URL + '/messages'
+    header = {'content-type': m.content_type, 'authorization': SPARK_AUTH}
+    response = requests.post(url, data=m, headers=header, verify=False)
+
+    print('File posted :  ', file_path+file_name)
+
+
+def main():
+
+    # check to see if the team exists, if it does not create the Spark team with the spark_team_name
+
+    team_id = get_spark_team_id(spark_team_name)
+    if team_id is None:
+        team_id = create_spark_team(spark_team_name)
+        print('Created ', spark_team_name, ' Team ID: ', team_id)
     else:
-        print('Room found ', room_name, ' Room ID: ', room_id)
+        print('Team found ', spark_team_name, ' Team ID: ', team_id)
+
+    # check to see if the room exists, if not create a new room with the spark_team_name, part of the team with the spark_team_name
+
+    room_id = get_spark_room_id(spark_room_name)
+    if room_id is None:
+        room_id = create_spark_room(spark_room_name, spark_team_name)
+        print('Created ', spark_room_name, ' Room ID: ', room_id)
+    else:
+        print('Room found ', spark_room_name, ' Room ID: ', room_id)
 
     # invite new members to join the room
 
-    membership_status = add_spark_team_membership(team_name, email)
+    membership_status = add_spark_team_membership(spark_team_name, email)
     if membership_status is None:
         print('Team member invitation failed')
     else:
-        print('Team member ', email, ' invited to team ', team_name)
+        print('Team member ', email, ' invited to team ', spark_team_name)
+
+    # Input the message
+
+    spark_message = input('Please enter the Spark message: ')
+
+    # Post a message in the Spark Room
+
+    post_spark_room_message(spark_room_name, spark_message)
+
+    # Find the last message posted in the room
+
+    last_spark_message = last_spark_room_message(spark_room_name)[0]
+    last_user_message = last_spark_room_message(spark_room_name)[1]
+
+    print('The last message from the room ', spark_room_name, ' was: ', last_spark_message)
+    print('The last message from the room ', spark_room_name, ' was posted by: ', last_user_message)
+
+    file_name = 'SunPeaks.jpg'
+    file_type = 'image/jpg'
+    file_path = '/Users/gzapodea/PythonCode/Community/'
+
+    post_spark_room_file(spark_room_name, file_name, file_type, file_path)
 
     # delete Spark team - optional step
 
-    if input('Do you delete the Spark Team  - ' + team_name + ' - ? (y/n)  ') == 'y':
-        delete_spark_team(team_name)
+    if input('Do you delete the Spark Team  - ' + spark_team_name + ' - ? (y/n)  ') == 'y':
+        delete_spark_team(spark_team_name)
 
 
 if __name__ == '__main__':
