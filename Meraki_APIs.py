@@ -8,10 +8,13 @@ import json
 import requests.packages.urllib3
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-from Meraki_APIs_init import MERAKI_API_KEY, MERAKI_CUSTOMER_NUMBER, MERAKI_URL
+from Meraki_APIs_init import MERAKI_API_KEY, MERAKI_URL, MERAKI_NETWORK_NAME
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # Disable insecure https warnings
 
+# these variables need to change for your environment:
+# the API key in the Meraki_APIs_init.py file
+# the MERAKI_NETWORK_NAME in the Meraki_APIs_init.py
 
 
 def pprint(json_data):
@@ -24,19 +27,22 @@ def pprint(json_data):
     print(json.dumps(json_data, indent=4, separators=(' , ', ' : ')))
 
 
-
 def meraki_get_organizations():
     """
-    This function will get the Meraki Organization Id
+    This function will get the Meraki Organization Id's and names the user has access to
     API call to /organizations
-    :return: Meraki Organization Id
+    :return: Meraki Organization Ids and names the user has access to
     """
     url = MERAKI_URL + '/organizations'
     header = {'content-type': 'application/json', 'X-Cisco-Meraki-API-Key': MERAKI_API_KEY}
     org_response = requests.get(url, headers=header, verify=False)
     org_json = org_response.json()
-    org_id = org_json[0]['id']
-    return org_id
+    pprint(org_json)
+    org_list = []
+    for org in org_json:
+        org_info = [org['name'], org['id']]
+        org_list.append(org_info)
+    return org_list
 
 
 def meraki_get_networks(organization_id):
@@ -52,6 +58,10 @@ def meraki_get_networks(organization_id):
     networks_json = networks_response.json()
     network_id = networks_json[0]['id']
     network_name = networks_json[0]['name']
+
+    # we will return just one network, the first in the list of networks
+    # we could return all the network ids by creating a List of ids
+
     return network_id, network_name
 
 
@@ -83,55 +93,44 @@ def meraki_get_devices(network_id):
     return devices_json
 
 
-def meraki_get_ssids(network_id):
-    """
-    This function will return the Meraki Network id list of configured SSIDs
-    :param network_id: Meraki Network id
-    :return: list of SSIDs
-    """
-    url = MERAKI_URL + '/networks/' + str(network_id) + '/ssids'
-    header = {'content-type': 'application/json', 'X-Cisco-Meraki-API-Key': MERAKI_API_KEY}
-    ssids_response = requests.get(url, headers=header, verify=False)
-    ssids_json = ssids_response.json()
-
-    # filter only configured SSIDs
-    ssids_list = []
-    for ssid in ssids_json:
-        if 'Unconfigured' not in ssid['name']:
-            ssids_list.append(ssid)
-    return ssids_list
-
-
-
 def main():
-
 
     # get the Meraki organization id
 
-    meraki_org_id = meraki_get_organizations()
-    print('\nYour Meraki Organization ID is: ', meraki_org_id)
+    meraki_organization_ids = meraki_get_organizations()
+    print('\nYour Meraki Organization IDs and names are: ')
+    pprint(meraki_organization_ids)
+
+    # select the network id for the Network Name - MERAKI_NETWORK_NAME = 'Meraki Live Demo'
+
+    for network in meraki_organization_ids:
+        if network[0] == MERAKI_NETWORK_NAME:
+            meraki_org_id = network[1]
+
+    print('\nYour selected Meraki Organization Id is ', meraki_org_id)
 
     # get the Meraki networks info
 
     meraki_network_info = meraki_get_networks(meraki_org_id)
-    # meraki_network_id = meraki_network_info[0]
-    # meraki_network_name = meraki_network_info[1]
+    meraki_network_id = meraki_network_info[0]
 
-    # print('Your Meraki Network ID is: ', meraki_network_id)
-    # print('Your Meraki Network Name is: ', meraki_network_name)
+    # print the selected Meraki network info
 
-    # get the Meraki Network Devices
+    print('Your Meraki Network ID is: ', meraki_network_id)
+    print('Your Meraki Network Name is: ', MERAKI_NETWORK_NAME)
 
-    # meraki_devices_list = meraki_get_devices(meraki_network_id)
-    # print('\nYour Meraki Network Devices are: ')
-    # pprint(meraki_devices_list)
+    # get the Meraki Network Devices for a network
+
+    meraki_devices_list = meraki_get_devices(meraki_network_id)
+    print('\nYour Meraki Network Devices present in the network with the name ', MERAKI_NETWORK_NAME, ' : ')
+
+    pprint(meraki_devices_list[0])  # sample of what info is provided for each network device
 
     # get the Meraki SM devices
 
-    #meraki_sm_devices_list = meraki_get_sm_devices(meraki_network_id)
-    #print('Your Meraki SM Devices list: \n')
-    #pprint(meraki_sm_devices_list)
-
+    meraki_sm_devices_list = meraki_get_sm_devices(meraki_network_id)
+    print('Your Meraki SM Devices list: \n')
+    pprint(meraki_sm_devices_list[0])  # print the info from SM for one device
 
 
 if __name__ == '__main__':
