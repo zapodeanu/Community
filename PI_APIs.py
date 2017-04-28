@@ -176,7 +176,7 @@ def pi_post_cli_template(cli_file_name, cli_template, list_variables):
         'cliTemplate': {
             'content': cli_config,
             'description': '',
-            'deviceType': '',
+            'deviceType': 'Routers',
             'name': cli_template,
             'path': '',
             'tags': '',
@@ -309,10 +309,9 @@ def main():
     # delete the dc cli template
 
     input('Enter Y to continue to delete the CLI templates')
-    time.sleep(30)
+    time.sleep(10)
     pi_delete_cli_template(dc_cli_template_name)
-    input('to continue')
-    time.sleep(30)
+    time.sleep(10)
     pi_delete_cli_template(remote_cli_template_name)
 
 
