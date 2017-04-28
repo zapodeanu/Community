@@ -165,8 +165,8 @@ def pi_post_cli_template(cli_file_name, cli_template, list_variables):
     """
     This function will upload a new CLI template from the text file {cli_file_name}
     API call to /webacs/api/v1/op/cliTemplateConfiguration/upload
-    :param list_variables: 
-    :param cli_template: 
+    :param list_variables: variables to be sent to Prime, required by the template
+    :param cli_template: CLI template name
     :param cli_file_name: cli template text file
     :return:
     """
@@ -176,7 +176,7 @@ def pi_post_cli_template(cli_file_name, cli_template, list_variables):
         'cliTemplate': {
             'content': cli_config,
             'description': '',
-            'deviceType': 'Routers',
+            'deviceType': 'Routers,Switches and Hubs',
             'name': cli_template,
             'path': '',
             'tags': '',
@@ -190,6 +190,18 @@ def pi_post_cli_template(cli_file_name, cli_template, list_variables):
     requests.post(url, json.dumps(param), headers=header, verify=False, auth=PI_AUTH)
     cli_file.close()
 
+
+def pi_get_cli_template(template):
+    """
+    
+    :param template: 
+    :return: 
+    """
+    url = PI_URL + '/webacs/api/v1/data/CliTemplate?name='+template
+    header = {'content-type': 'application/json', 'accept': 'application/json'}
+    response = requests.get(url, headers=header, verify=False, auth=PI_AUTH)
+    response_json = response.json()
+    pprint(response_json)
 
 
 
@@ -302,6 +314,8 @@ def main():
     # upload the new CLI config file to PI
     pi_post_cli_template(cloned_remote_file_name, remote_cli_template_name, list_var)
 
+    pi_get_cli_template('GRERConfig')
+
     # deploy the new uploaded PI CLI template to the DC router
 
     # PI_dc_job_name = pi_deploy_cli_template(PI_dc_device_id, cli_template_name)
@@ -309,9 +323,9 @@ def main():
     # delete the dc cli template
 
     input('Enter Y to continue to delete the CLI templates')
-    time.sleep(10)
+    time.sleep(2)
     pi_delete_cli_template(dc_cli_template_name)
-    time.sleep(10)
+    time.sleep(2)
     pi_delete_cli_template(remote_cli_template_name)
 
 
