@@ -32,25 +32,6 @@ def pprint(json_data):
     print(json.dumps(json_data, indent=4, separators=(' , ', ' : ')))
 
 
-def update_cli_template(vlan_id,remote_client,file):
-    """
-    This function will update an existing CLI template with the values to be used for deployment
-    :param vlan_id: VLAN ID of the remote client
-    :param remote_client: IP address for the remote client
-    :param file: file that contains the CLI template
-    :return: will save the file with the template to be deployed, with the name: upd_+{file}
-    """
-    file_in = open(file, 'r')
-    file_out = open('upd_'+file, 'w')
-    for line in file_in:
-        line = line.replace('$VlanId',vlan_id)
-        line = line.replace('$RemoteClient',remote_client)
-        file_out.write(line)
-        print(line)
-    file_in.close()
-    file_out.close()
-
-
 def pi_get_device_id(device_name):
     """
     Find out the PI device Id using the device hostname
@@ -180,10 +161,12 @@ def pi_clone_cli_template(file):
     return cloned_file_name
 
 
-def pi_post_cli_template(cli_file_name, cli_template):
+def pi_post_cli_template(cli_file_name, cli_template, list_variables):
     """
     This function will upload a new CLI template from the text file {cli_file_name}
     API call to /webacs/api/v1/op/cliTemplateConfiguration/upload
+    :param list_variables: 
+    :param cli_template: 
     :param cli_file_name: cli template text file
     :return:
     """
@@ -197,7 +180,7 @@ def pi_post_cli_template(cli_file_name, cli_template):
             'name': cli_template,
             'path': '',
             'tags': '',
-            'variables': ''
+            'variables': list_variables
         },
         'version': ''
     }
@@ -250,37 +233,89 @@ def main():
     # client IP address - DNS lookup if available
 
     client_IP = '172.16.41.55'
+    vlan_id = 41
+    print('\nThe Client IP address is ' + client_IP + ' connected to vlan ' + str(vlan_id))
 
-    #  deploy DC router CLI template
+    # upload DC router CLI template
 
     dc_device_hostname = 'PDX-RO'
+
+    # find the PI device id for the DC router
+
     PI_dc_device_id = pi_get_device_id(dc_device_hostname)
-    print('Head end router: ', dc_device_hostname, ', PI Device id: ', PI_dc_device_id)
 
-    template_name = 'GREDConfig'
-    variable_value = None    # the template does not require any variables
-    PI_dc_job_name = pi_deploy_cli_template(PI_dc_device_id, template_name, variable_value)
+    print('\nHead end router: ', dc_device_hostname, ', PI Device id: ', PI_dc_device_id)
 
-    #  deploy remote router CLI template
+    # clone the CLI template, create a new one with the date appended
 
-    remote_device_hostname = client_connected[0]
-    vlan_number = client_connected[2]
-    print('Client connected to switch: ', remote_device_hostname, ' VLAN: ', vlan_number)
+    dc_file_name = 'GRE_DC_Config.txt'
+    print('The DC CLI template text file name is', dc_file_name)
+
+    cloned_dc_file_name = pi_clone_cli_template(dc_file_name)
+    print('The new DC CLI template text file name is', cloned_dc_file_name)
+
+    # upload the new template to PI
+
+    dc_cli_template_name = CLI_DATE_TIME+' DC-config'
+    list_var = None
+    print('DC CLI template name is: ', dc_cli_template_name)
+
+    # upload the new CLI config file to PI
+    pi_post_cli_template(cloned_dc_file_name, dc_cli_template_name, list_var)
+
+    # deploy the new uploaded PI CLI template to the DC router
+
+    # PI_dc_job_name = pi_deploy_cli_template(PI_dc_device_id, cli_template_name)
+
+    # upload the remote router CLI template
+
+    remote_device_hostname = 'NYC-SW'
+
+    # find the PI device id for the remote switch
+
     PI_remote_device_id = pi_get_device_id(remote_device_hostname)
-    print('Remote Router: ', remote_device_hostname, ', PI device Id: ', PI_remote_device_id)
-    template_name = 'GRERConfig'
-    variable_value = [
-        {'name': 'RemoteClient', 'value': client_IP}, {'name': 'VlanId', 'value': str(vlan_number)}
-    ]
-    PI_remote_job_name = pi_deploy_cli_template(PI_remote_device_id, template_name, variable_value)
 
-    # check for job status
+    print('\nHead end router: ', remote_device_hostname, ', PI Device id: ', PI_remote_device_id)
 
-    time.sleep(60)  #  time delay to allow PI de deploy the jobs
-    dc_job_status = get_job_status(PI_dc_job_name)
-    print('DC CLI template deployment status: ', dc_job_status)
-    remote_job_status = get_job_status(PI_remote_job_name)
-    print('Remote CLI template deployment status: ', remote_job_status)
+    # clone the CLI template, create a new one with the date appended
+
+    remote_file_name = 'GRE_Remote_Config.txt'
+    print('The Remote CLI template text file name is', remote_file_name)
+
+    cloned_remote_file_name = pi_clone_cli_template(remote_file_name)
+    print('The new Remote CLI template text file name is', cloned_remote_file_name)
+
+    # upload the new template to PI
+
+    remote_cli_template_name = CLI_DATE_TIME+' Remote-config'
+    print('Remote CLI template name is: ', remote_cli_template_name)
+
+    list_var = {
+        'variable': [
+            {'name': 'RemoteClient', 'displayLabel': 'RemoteClient', 'description': 'IP address', 'required': 'True', 'type': 'IPv4 Address'},
+            {'name': 'VlanId', 'displayLabel': 'VlanId', 'description': 'VLAN number', 'required': 'True', 'type': 'Integer'}
+        ]
+    }
+
+    pprint(list_var)
+
+    # upload the new CLI config file to PI
+    pi_post_cli_template(cloned_remote_file_name, remote_cli_template_name, list_var)
+
+    # deploy the new uploaded PI CLI template to the DC router
+
+    # PI_dc_job_name = pi_deploy_cli_template(PI_dc_device_id, cli_template_name)
+
+    # delete the dc cli template
+
+    input('Enter Y to continue to delete the CLI templates')
+    time.sleep(30)
+    pi_delete_cli_template(dc_cli_template_name)
+    input('to continue')
+    time.sleep(30)
+    pi_delete_cli_template(remote_cli_template_name)
+
+
 
 
 if __name__ == '__main__':
