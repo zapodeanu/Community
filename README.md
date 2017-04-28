@@ -26,4 +26,4 @@ Meraki APIs sample code
 PI APIs sample code
 
  - PI_APIs_init.py - Update this file with your local Prime Infrastructure information
- - PI_APIs.py - Sample code to upload a CLI template, loaded from a file, deployed to a device and check status
+ - PI_APIs.py - Sample script to open a text file with a configuration, upload to PI, deploy the CLI template to a device and check PI job status
