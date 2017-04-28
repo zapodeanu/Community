@@ -20,3 +20,10 @@ Meraki APIs sample code
  - Meraki_APIs.py - How to use Meraki APIs to find an inventory of your network devices, and clients
  - Update the Meraki_APIs_init.py with your organization id and API key
  
+
+==============
+
+PI APIs sample code
+
+ - PI_APIs_init.py - Update this file with your local Prime Infrastructure information
+ - PI_APIs.py - Sample code to upload a CLI template, loaded from a file, deployed to a device and check status
