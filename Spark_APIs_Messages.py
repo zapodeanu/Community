@@ -15,11 +15,16 @@ from Spark_APIs_init import SPARK_AUTH, SPARK_URL
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)  # Disable insecure https warnings
 
 
-# declarations for team/room/membership
+# Declarations for team/room/membership. Please change these variables to match what you need.
+# The file name, type and path need to be be changed
 
 spark_team_name = 'TeamTest'
 spark_room_name = 'RoomTest'
 email = 'gabi@cisco.com'
+
+file_name = 'ERNA_diag.jpg'  # change this for your file
+file_type = 'image/jpg'  # change the file type for your file
+file_path = '/Users/gzapodea/PythonCode/Community/'  # change this path to match your local path
 
 
 def pprint(json_data):
@@ -273,10 +278,6 @@ def main():
 
     print('The last message from the room ', spark_room_name, ' was: ', last_spark_message)
     print('The last message from the room ', spark_room_name, ' was posted by: ', last_user_message)
-
-    file_name = 'ERNA_diag.jpg'  # change this for your file
-    file_type = 'image/jpg'  # change the file type for your file
-    file_path = '/Users/gzapodea/PythonCode/Community/'  # change this path to match your local path
 
     post_spark_room_file(spark_room_name, file_name, file_type, file_path)
 
