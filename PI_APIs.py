@@ -125,7 +125,7 @@ def pi_delete_cli_template(cli_template_name):
         print('PI CLI Template with the name: ', cli_template_name, ' not deleted')
 
 
-def pi_update_cli_template(vlan_id,remote_client,file):
+def pi_update_cli_template(vlan_id, remote_client, file):
     """
     This function will update an existing CLI template with the values to be used for deployment
     :param vlan_id: VLAN ID of the remote client
@@ -161,15 +161,23 @@ def pi_clone_cli_template(file):
     return cloned_file_name
 
 
-def pi_post_cli_template(cli_file_name, cli_template, list_variables):
+def pi_upload_cli_template(cli_file_name, cli_template, list_variables):
     """
-    This function will upload a new CLI template from the text file {cli_file_name}
+    This function will upload a new CLI template from the text file {cli_file_name}.
+    It will check if the PI CLI template exists and if yes, it will delete the CLI template
     API call to /webacs/api/v1/op/cliTemplateConfiguration/upload
     :param list_variables: variables to be sent to Prime, required by the template
     :param cli_template: CLI template name
     :param cli_file_name: cli template text file
     :return:
     """
+
+    # check if the CLI template exists, if it does, delete the existing template
+
+    cli_template_id = pi_get_cli_template(cli_template)
+    if not cli_template_id:
+        pi_delete_cli_template(cli_template)
+
     cli_file = open(cli_file_name, 'r')
     cli_config = cli_file.read()
     param = {
@@ -184,7 +192,6 @@ def pi_post_cli_template(cli_file_name, cli_template, list_variables):
         },
         'version': ''
     }
-    pprint(param)
     url = PI_URL + '/webacs/api/v1/op/cliTemplateConfiguration/upload'
     header = {'content-type': 'application/json', 'accept': 'application/json'}
     requests.post(url, json.dumps(param), headers=header, verify=False, auth=PI_AUTH)
@@ -193,44 +200,20 @@ def pi_post_cli_template(cli_file_name, cli_template, list_variables):
 
 def pi_get_cli_template(template):
     """
-    
-    :param template: 
-    :return: 
+    This function will check if PI has already a CLI template with the name {template}
+    :param template: PI CLI template name
+    :return: {None} if the template does not exist, {template id} if template exists
     """
     url = PI_URL + '/webacs/api/v1/data/CliTemplate?name='+template
     header = {'content-type': 'application/json', 'accept': 'application/json'}
-    response = requests.get(url, headers=header, verify=False, auth=PI_AUTH)
-    response_json = response.json()
-    pprint(response_json)
-
-
-
-def get_job_status(job_name):
-    """
-    Get job status in PI
-    Call to Prime Infrastructure - /webacs/api/v1/data/JobSummary, filtered by the job name, will provide the job id
-    A second call to /webacs/api/v1/data/JobSummary using the job id
-    :param job_name: Prime Infrastructure job name
-    :return: PI job status
-    """
-
-    #  find out the PI job id using the job name
-
-    url = PI_URL + '/webacs/api/v1/data/JobSummary?jobName=' + job_name
-    header = {'content-type': 'application/json', 'accept': 'application/json'}
-    response = requests.get(url, headers=header, verify=False, auth=PI_AUTH)
-    job_id_json = response.json()
-    job_id = job_id_json['queryResponse']['entityId'][0]['$']
-
-    #  find out the job status using the job id
-
-    url = PI_URL + '/webacs/api/v1/data/JobSummary/' + job_id
-    header = {'content-type': 'application/json', 'accept': 'application/json'}
-    response = requests.get(url, headers=header, verify=False, auth=PI_AUTH)
-    job_status_json = response.json()
-    #  print(json.dumps(job_status_json, indent=4, separators=(' , ', ' : ')))
-    job_status = job_status_json['queryResponse']['entity'][0]['jobSummaryDTO']['resultStatus']
-    return job_status
+    templ = requests.get(url, headers=header, verify=False, auth=PI_AUTH)
+    templ_json = templ.json()
+    templ_count = templ_json['queryResponse']['@count']
+    if templ_count == '1':  # if templ_count is "0", template does not exist
+        templ_id = templ_json['queryResponse']['entityId'][0]['$']
+    else:
+        templ_id = None
+    return templ_id
 
 
 def main():
@@ -248,9 +231,26 @@ def main():
     vlan_id = 41
     print('\nThe Client IP address is ' + client_IP + ' connected to vlan ' + str(vlan_id))
 
-    # upload DC router CLI template
+    #
+    # Check if DC CLI template exists, if not upload the template to PI
+    #
 
-    dc_device_hostname = 'PDX-RO'
+    dc_device_hostname = 'PDX-RO'  # This is the DC device name
+    dc_config_file = 'GRE_DC_Config.txt'  # The template text file name
+    print('The DC device hostname is: ', dc_device_hostname)
+    print('The DC config file name is: ', dc_config_file)
+
+    dc_cli_template = dc_config_file.split('.')[0]  # The PI CLI template name
+    print('The DC CLI template name is: ', dc_cli_template)
+
+    cli_template_id = pi_get_cli_template(dc_cli_template)
+    print('The PI DC CLI template id is: ', cli_template_id)
+
+    # upload the new template to PI
+
+    list_var = None
+
+    pi_upload_cli_template(dc_config_file, dc_cli_template, list_var)
 
     # find the PI device id for the DC router
 
@@ -258,26 +258,39 @@ def main():
 
     print('\nHead end router: ', dc_device_hostname, ', PI Device id: ', PI_dc_device_id)
 
-    # clone the CLI template, create a new one with the date appended
+    #
+    # Check if Remote Switch CLI template exists, if not upload the template to PI
+    #
 
-    dc_file_name = 'GRE_DC_Config.txt'
-    print('The DC CLI template text file name is', dc_file_name)
+    dc_device_hostname = 'PDX-RO'  # This is the DC device name
+    dc_config_file = 'GRE_DC_Config.txt'  # The template text file name
+    print('The DC device hostname is: ', dc_device_hostname)
+    print('The DC config file name is: ', dc_config_file)
 
-    cloned_dc_file_name = pi_clone_cli_template(dc_file_name)
-    print('The new DC CLI template text file name is', cloned_dc_file_name)
+    dc_cli_template = dc_config_file.split('.')[0]  # The PI CLI template name
+    print('The DC CLI template name is: ', dc_cli_template)
+
+    cli_template_id = pi_get_cli_template(dc_cli_template)
+    print('The PI DC CLI template id is: ', cli_template_id)
 
     # upload the new template to PI
 
-    dc_cli_template_name = CLI_DATE_TIME+' DC-config'
     list_var = None
-    print('DC CLI template name is: ', dc_cli_template_name)
 
-    # upload the new CLI config file to PI
-    pi_post_cli_template(cloned_dc_file_name, dc_cli_template_name, list_var)
+    pi_upload_cli_template(dc_config_file, dc_cli_template, list_var)
+
+    # find the PI device id for the DC router
+
+    PI_dc_device_id = pi_get_device_id(dc_device_hostname)
+
+    print('\nHead end router: ', dc_device_hostname, ', PI Device id: ', PI_dc_device_id)
+    list_var = None
+
+    pi_upload_cli_template(cloned_dc_file_name, dc_cli_template_name, list_var)
 
     # deploy the new uploaded PI CLI template to the DC router
 
-    # PI_dc_job_name = pi_deploy_cli_template(PI_dc_device_id, cli_template_name)
+    PI_dc_job_name = pi_deploy_cli_template(PI_dc_device_id, dc_cli_template)
 
     # upload the remote router CLI template
 
@@ -312,7 +325,7 @@ def main():
     pprint(list_var)
 
     # upload the new CLI config file to PI
-    pi_post_cli_template(cloned_remote_file_name, remote_cli_template_name, list_var)
+    pi_upload_cli_template(cloned_remote_file_name, remote_cli_template_name, list_var)
 
     pi_get_cli_template('GRERConfig')
 
